@@ -23,7 +23,12 @@ public class RgYarnCli {
 			SpringApplication.run(RgYarnCont.class, args);
 		} else {
 			Logger.getRootLogger().info("YARN_MODE = CLIENT");
-			SpringApplication.run(RgYarnCli.class, args).getBean(YarnClient.class).submitApplication(true);
+			//SpringApplication.run(RgYarnCli.class, args).getBean(YarnClient.class).submitApplication(true);
+			try {
+                new WebServer().run();
+            } catch (Exception e) {
+			    throw new RuntimeException(e);
+            }
 		}
 	}
 }

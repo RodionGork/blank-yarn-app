@@ -10,7 +10,7 @@ import org.springframework.yarn.annotation.YarnComponent;
 @YarnComponent
 public class WorkerPojo {
 
-	private static final Log log = LogFactory.getLog(WorkerPojo.class);
+	private final Log log = LogFactory.getLog(getClass());
 
 	@Autowired
 	private Configuration configuration;

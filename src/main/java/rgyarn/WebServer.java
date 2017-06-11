@@ -1,9 +1,18 @@
 package rgyarn;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -11,7 +20,17 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public class WebServer {
 
-    Server server;
+	private final Log log = LogFactory.getLog(getClass());
+
+    private Server server;
+    
+    private static final HashMap<String, String> TYPES = new HashMap() {
+        {
+            put("html", "text/html");
+            put("js", "application/javascript");
+            put("png", "image/png");
+        }
+    };
 
     public void run() throws Exception {
         server = createBasicServer();
@@ -28,27 +47,62 @@ public class WebServer {
 
         @Override
         public void handle(String s, Request baseReq, HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
-            if (req.getMethod().equalsIgnoreCase("POST")) {
-                try {
-                    System.exit(0);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
             baseReq.setHandled(true);
-            String path = req.getPathInfo().replaceFirst(".*\\/", "");
+            String path = req.getPathInfo().replaceFirst("^\\/", "");
             if (path.equals("")) {
-                resp.setContentType("text/html");
                 serveStaticFile(resp, "index.html");
-            } else if (path.endsWith(".js")) {
-                resp.setContentType("application/javascript");
+            } else if (path.matches(".*\\.(?:js|png|jpg|css)$")) {
                 serveStaticFile(resp, path);
+            } else if (path.startsWith("api/")) {
+                serveApi(resp, path.replace("api/", "").split("\\/"));
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().println("Resource Not Found");
             }
         }
 
-        private void serveStaticFile(HttpServletResponse resp, String name) {
+        private void serveApi(HttpServletResponse resp, String[] params) throws IOException {
+            log.info("Serving API: " + String.join(", ", params));
+            if (params[0].equals("shutdown")) {
+                scheduleShutdown();
+            }
             resp.setStatus(HttpServletResponse.SC_OK);
-            //resp.getWriter().println(String.format("<h1>%s</h1>", name));
+        }
+        
+        private void scheduleShutdown() {
+            TimerTask shutdownTask = new TimerTask() {
+               public void run() {
+                   System.exit(0);
+               }
+            };
+            new Timer().schedule(shutdownTask, 1000L);
+        }
+        
+        private void serveStaticFile(HttpServletResponse resp, String name) throws IOException {
+            log.debug("Serving static: " + name);
+            String type = TYPES.get(name.replaceFirst(".*\\.", ""));
+            InputStream input = getClass().getClassLoader().getResourceAsStream("static/" + name);
+            if (input == null || type == null) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().println("File Not Found");
+                return;
+            }
+            input = new BufferedInputStream(input);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            while (true) {
+                int b = input.read();
+                if (b < 0) {
+                    break;
+                }
+                bos.write(b);
+            }
+            input.close();
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType(type);
+            if (bos.size() > 0) {
+                resp.setContentLength(bos.size());
+                bos.writeTo(resp.getOutputStream());
+            }
         }
     }
 

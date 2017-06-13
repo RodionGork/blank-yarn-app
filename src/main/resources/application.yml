@@ -17,6 +17,6 @@ spring:
             localizer:
                 patterns:
                   - "*.jar"
-            containerCount: 1
+            containerCount: 3
             launchcontext:
                 archiveFile: rg-yarn.jar

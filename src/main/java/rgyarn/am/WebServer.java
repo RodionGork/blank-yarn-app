@@ -24,6 +24,8 @@ public class WebServer {
 
     private Server server;
     
+    private CustomStaticAppmaster appmaster;
+    
     private static final HashMap<String, String> TYPES = new HashMap() {
         {
             put("html", "text/html");
@@ -31,12 +33,18 @@ public class WebServer {
             put("png", "image/png");
         }
     };
-
+    
+    public WebServer() {
+    }
+    
+    public WebServer(CustomStaticAppmaster appmaster) {
+        this.appmaster = appmaster;
+    }
+    
     public void run() throws Exception {
         server = createBasicServer();
         server.setHandler(new CustomHandler());
         server.start();
-        server.join();
     }
     
     private Server createBasicServer() {
@@ -77,6 +85,9 @@ public class WebServer {
                     //System.exit(0);
                     try {
                         server.stop();
+                        if (appmaster != null) {
+                            appmaster.shutdown();
+                        }
                         timer.cancel();
                         timer.purge();
                     } catch (Exception e) {

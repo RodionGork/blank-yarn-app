@@ -1,7 +1,7 @@
 function main() {
     $('#killme').click(function() {
         if (confirm('Sure???')) {
-            $.get('./api/shutdown');
+            location.href = './api/shutdown';
         }
     });
 }

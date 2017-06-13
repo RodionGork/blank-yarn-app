@@ -1,4 +1,4 @@
-package rgyarn;
+package rgyarn.am;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,7 +20,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public class WebServer {
 
-	private final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
     private Server server;
     
@@ -67,15 +67,24 @@ public class WebServer {
                 scheduleShutdown();
             }
             resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().println("<h1>Good Bye!</h1>");
         }
         
         private void scheduleShutdown() {
+            Timer timer = new Timer();
             TimerTask shutdownTask = new TimerTask() {
-               public void run() {
-                   System.exit(0);
+                public void run() {
+                    //System.exit(0);
+                    try {
+                        server.stop();
+                        timer.cancel();
+                        timer.purge();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                }
             };
-            new Timer().schedule(shutdownTask, 1000L);
+            timer.schedule(shutdownTask, 1000L);
         }
         
         private void serveStaticFile(HttpServletResponse resp, String name) throws IOException {

@@ -35,7 +35,9 @@ public class RgYarnAm extends SpringYarnConfigurerAdapter {
     @Override
     public void configure(YarnAppmasterConfigurer master) throws Exception {
         master
-            .appmasterClass(CustomStaticAppmaster.class);
+            .appmasterClass(CustomStaticAppmaster.class)
+            .withContainerRunner();
     }
     
 }
+

@@ -27,16 +27,23 @@ public class CustomStaticAppmaster extends StaticAppmaster implements YarnAppmas
     protected void doStart() {
         log.info("DBGPZ, starting");
         super.doStart();
-        log.info("DBGPZ, starting 2");
+        log.info("DBGPZ, starting 2" + getEnvironment());
+        registerAppmaster();
+        log.info("DBGPZ, registered");
+		if (getAppmasterService() == null) {
+			log.info("AppmasterService is null");
+		}
         try {
             new WebServer(this).run();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        
     }
     
     public void shutdown() {
-        notifyCompleted();
+        log.info("DBGPZ, finishing");
+        finishAppmaster();
     }
 }
 

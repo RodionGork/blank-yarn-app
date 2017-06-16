@@ -19,15 +19,14 @@ public class CustomStaticAppmaster extends StaticAppmaster implements YarnAppmas
     
     @Override
     protected void onInit() throws Exception {
+        setEnvironment(System.getenv());
         log.info("DBGPZ, initializing");
         super.onInit();
     }
     
     @Override
     protected void doStart() {
-        log.info("DBGPZ, starting");
         super.doStart();
-        log.info("DBGPZ, starting 2" + getEnvironment());
         registerAppmaster();
         log.info("DBGPZ, registered");
 		if (getAppmasterService() == null) {
@@ -42,8 +41,8 @@ public class CustomStaticAppmaster extends StaticAppmaster implements YarnAppmas
     }
     
     public void shutdown() {
-        log.info("DBGPZ, finishing");
-        finishAppmaster();
+        doStop();
+        stop();
     }
 }
 

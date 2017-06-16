@@ -14,7 +14,7 @@ import org.springframework.yarn.config.annotation.builders.YarnConfigConfigurer;
 //@EnableAutoConfiguration
 public class RgYarnAm extends SpringYarnConfigurerAdapter {
     
-    //@Bean
+    @Bean
     public WebServer webServer() {
         WebServer ws = new WebServer();
         try {
@@ -28,6 +28,7 @@ public class RgYarnAm extends SpringYarnConfigurerAdapter {
     @Override
     public void configure(YarnConfigConfigurer config) throws Exception {
         config
+            .loadDefaults(true)
             .fileSystemUri("hdfs://localhost:9000")
             .resourceManagerAddress("localhost:8032");
     }
@@ -37,6 +38,11 @@ public class RgYarnAm extends SpringYarnConfigurerAdapter {
         master
             .appmasterClass(CustomStaticAppmaster.class)
             .withContainerRunner();
+        master
+            .withContainerAllocator()
+            .priority(0)
+            .virtualCores(1)
+            .memory(512);
     }
     
 }
